@@ -60,3 +60,24 @@ class ToDoDAL:
             session=session
         ):
             yield ListSummary.fromdoc(doc)
+
+    async def create_todo_list(self, name:str, session=None) -> str:
+        response = await self._todo_collection.insert_one(
+            {"name": name, "items": []},
+            session=session
+        )
+        return str(response.inserted_id)
+    
+    async def get_todo_list(self, id:str | ObjectId, session=None) -> ToDoList:
+        doc = await self._todo_collection.find_one(
+            {"_id": ObjectId(id)},
+            session=session
+        )
+        return ToDoList.from_doc(doc)
+
+    async def delete_todo_list(self, id:str | ObjectId, session=None) -> bool:
+        response = await self._todo_collection.delete_one(
+            {"_id": ObjectId(id)},
+            session=session
+        )
+        return response.deleted_count == 1
