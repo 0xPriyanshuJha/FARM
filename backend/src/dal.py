@@ -81,3 +81,35 @@ class ToDoDAL:
             session=session
         )
         return response.deleted_count == 1
+    
+    async def create(self, id: str | ObjectId, label: str, session: None) -> ToDoList|None:
+        result = await self._todo_collection.find_one_and_update({"id": ObjectId(id)},
+                                                                {
+                                                        "$push": {
+                                                        "items": {
+                                                        "id":uuid64().hex,
+                                                        "label":label,
+                                                        "checked": False,
+                                                        }}},
+                                                        session=session,
+                                                        ReturnDocument = ReturnDocument.AFTER,
+                                                        )
+        if result:
+            return ToDoList.from_doc(result)
+        
+
+        async def delete_items(self, id: str | ObjectId, item_ids: list[str], session=None) -> ToDoList | None:
+            result = await self._todo_collection.find_one_and_update(
+                {"_id": ObjectId(id)},
+                {
+                    "$pull": {
+                        "items": {
+                            "id": "item_id"
+                        }
+                    }
+                },
+                session=session,
+                return_document=ReturnDocument.AFTER,
+            )
+            if result:
+                return ToDoList.fromdoc(result)
